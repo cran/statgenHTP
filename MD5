@@ -1,6 +1,6 @@
-58ee93f38bf6b9e83b9f419daa6f8233 *DESCRIPTION
+a9816132cffcaac54868ffd1b544988c *DESCRIPTION
 3fed0e99f32bd1cfe9a8a78541f3ee15 *NAMESPACE
-4654785b1c399ebe14ef7551bdf7588c *NEWS.md
+5ea93376e4b3f0c515fb64e7e1dfdca4 *NEWS.md
 51f511c81ecef8de28dd608ab0b24ed3 *R/correctSpatial.R
 b3e7fbffa804700948c48476293cacad *R/createFitMod.R
 5dee3492f466d4d790fe130f17206532 *R/createTimePoints.R
@@ -17,8 +17,8 @@ d91e824815d9a76da15f191da4db8c34 *R/getTimePoints.R
 bd88a2054c1e17dc01df073dec379b9d *R/statgenHTP.R
 ee2793e1efa2450267f2a1ea84075b82 *R/sysdata.rda
 ed1cf8a5edabb853dbae8898240d04f9 *R/utils.R
-b654ea44255009d84c24475107e932e0 *README.md
-289e7909fe5691a842c2e43700c005a6 *build/partial.rdb
+14004ec301a5ff47d0470650d7ad22a5 *README.md
+283eed6c80e8a09d964a146e65cbd937 *build/partial.rdb
 a872455b3fb6b25d72e0f50663bd1dae *build/vignette.rds
 0099cbec471838ba30fb3aed91b36fdf *data/PhenoarchDat1.rda
 98136e31a5c529a5fb110f3d2c45aa57 *data/PhenovatorDat1.rda
@@ -29,7 +29,7 @@ a872455b3fb6b25d72e0f50663bd1dae *build/vignette.rds
 69f7dccd9967f60f6372aba80e401723 *data/spatPredArch.rda
 a538e36f6c9da604241b97267a8aa985 *inst/doc/Overview_HTP.R
 0e2948fe6dc8aadd906a8e29c0ff1948 *inst/doc/Overview_HTP.Rmd
-7d8b4503d023edefbd9ad1f261c3af20 *inst/doc/Overview_HTP.html
+d4da0dd7e8f43d6adad4960beccbea4f *inst/doc/Overview_HTP.html
 60d4437662aadc9b1beeffb06a57f740 *inst/tinytest/corr1Comp
 0d7515a2b3006c61bc98a326387fb482 *inst/tinytest/corr2Comp
 f462682a9138c4211ff081509653370d *inst/tinytest/corr3Comp
@@ -67,7 +67,7 @@ ccce3a2e8218625965c3b701d40733e2 *inst/tinytest/test_TP.R
 61467d4bf5b47e63613ddf2c8bd1e7ba *inst/tinytest/test_TPPlots.R
 8942b15028be56d22443028c30d515a5 *inst/tinytest/test_fitModPlots.R
 b05980ac6354a4a4a620469c2e5b0ef8 *inst/tinytest/test_fitModels.R
-55b8c0a78e1b3d7e6cccc8e0a2067014 *inst/tinytest/test_getCorrected.R
+bc6890aff7f287adf2d69d6555f2294f *inst/tinytest/test_getCorrected.R
 7d0697074a0737dc15db8dfbffb5091b *inst/tinytest/test_getEffDims.R
 66ae5709f83da4c2ee7d8f54fa7fe991 *inst/tinytest/test_getGenoPred.R
 37a6a657d339b7e817e72f7f57b5ab75 *inst/tinytest/test_getHerit.R
