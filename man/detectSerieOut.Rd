@@ -12,7 +12,8 @@ detectSerieOut(
   genotypes = NULL,
   geno.decomp = NULL,
   thrCor = 0.9,
-  thrPca = 30
+  thrPca = 30,
+  thrSlope = 0.7
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ based on correlation between plots.}
 
 \item{thrPca}{A numerical value used as threshold for determining outliers
 based on angles (in degrees) between PCA scores.}
+
+\item{thrSlope}{A numerical value used as threshold for determining outliers
+based on slopes.}
 }
 \value{
 An object of class \code{serieOut}, a \code{data.frame} with outlying
@@ -50,7 +54,10 @@ outlying time courses, i.e., plants. An outlying time course will have low
 correlation to the majority of time courses. To support the analysis by
 correlations, a principal component analysis is done on the plant
 (time course) by spline coefficient matrix. A PCA plot of the plant scores
-will show the outlying plants.
+will show the outlying plants. Finally the pairwise-ratios of the slopes of
+a linear model fitted through the spline coefficients are computed. Plants
+are tagged when the average pairwise-ratio is lower the a given threshold
+(\code{thrSlope}).
 }
 \examples{
 \donttest{
@@ -75,7 +82,8 @@ outVator <- detectSerieOut(corrDat = spatCorrectedVator,
                            trait = "EffpsII_corr",
                            genotypes = subGenoVator,
                            thrCor = 0.9,
-                           thrPca = 30)
+                           thrPca = 30,
+                           thrSlope = 0.7)
 
 ## The `outVator` can be visualized for selected genotypes.
 plot(outVator, genotypes = "G151")

@@ -111,14 +111,14 @@
 #' data("PhenoarchDat1")
 #' phenoTParch <- createTimePoints(dat = PhenoarchDat1,
 #'                                 experimentName = "Phenoarch",
-#'                                 genotype = "geno",
-#'                                 timePoint = "Time",
+#'                                 genotype = "Genotype",
+#'                                 timePoint = "Date",
 #'                                 plotId = "pos",
 #'                                 rowNum = "Row",
 #'                                 colNum = "Col")
 #'
 #' modPhenoSpGD <- fitModels(TP = phenoTParch,
-#'                           trait = "LA_Estimated",
+#'                           trait = "LeafArea",
 #'                           geno.decomp = c("Scenario", "population"),
 #'                           timePoints = 16)
 #' }
@@ -187,6 +187,12 @@ fitModels <- function(TP,
     for (extraFF in extraFixedFactors) {
       if (!all(sapply(X = TP, FUN = hasName, name = extraFF))) {
         stop(extraFF, " should be a column in TP for all timePoints.\n")
+      }
+      for (timePoint in TP) {
+        if (all(is.na(timePoint[[extraFF]]))) {
+          stop(extraFF, " has only missing values for ",
+               timePoint[["timePoint"]][[1]], ".\n")
+        }
       }
     }
   }
@@ -322,12 +328,13 @@ fitModels <- function(TP,
       }
       ## number of segments for SpATS.
       nseg <- c(length(unique(modDat[["colNum"]])),
-                length(unique(modDat[["rowNum"]]))) #/ 2
+                length(unique(modDat[["rowNum"]])))
       ## Fit and return the model.
       SpATS::SpATS(response = trait, fixed = fixedForm,
                    random = randForm,
                    spatial = ~ SpATS::PSANOVA(colNum, rowNum, nseg = nseg,
-                                              nest.div = c(2, 2)),
+                                              nest.div = c(2, 2),
+                                              center = TRUE),
                    genotype = genoCol, genotype.as.random = genoRand,
                    geno.decomp = geno.decomp, data = modDat,
                    control = list(maxit = 50, tolerance = 1e-03,

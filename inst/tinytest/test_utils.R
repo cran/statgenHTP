@@ -90,13 +90,14 @@ expect_equal(dfOut4[["treat"]], c("W", "D", "W" , "D"))
 
 ## Different splits for n = 1, 2 and 3.
 ## Use 40 day time difference for ease of checking.
-times <- strptime(c("1sep2019", "11oct2019"), "%d%b%Y")
+times <- strptime(c("1sep2019 12:00", "11oct2019 12:00"), "%d%b%Y %H:%M")
 expect_equal(statgenHTP:::prettier(n = 1)(times),
-             strptime("21sep2019", "%d%b%Y"))
+             strptime("21sep2019 12:00", "%d%b%Y %H:%M"))
 expect_equal(statgenHTP:::prettier(n = 2)(times),
-             strptime(c("9sep2019", "3oct2019"), "%d%b%Y"))
+             strptime(c("9sep2019 12:00", "3oct2019 12:00"), "%d%b%Y %H:%M"))
 expect_equal(statgenHTP:::prettier(n = 3)(times),
-             strptime(c("6sep2019", "21sep2019", "6oct2019"), "%d%b%Y"))
+             strptime(c("6sep2019 12:00", "21sep2019 12:00", "6oct2019 12:00"),
+                      "%d%b%Y %H:%M"))
 
 ### Test chkFile
 
@@ -139,7 +140,33 @@ expect_equal(statgenHTP:::chkTimePoints(testTP, 1),
 
 expect_error(getTimePoints(x = 1:3),
              "x should be an object of class TP or fitMod")
-## Create TP object.
 expect_inherits(getTimePoints(testTP), "data.frame")
 expect_equal(getTimePoints(testTP), attr(x = testTP, which = "timePoints"))
 
+## Test countValid
+expect_error(countValid(1),
+             "TP should be an object of class TP")
+expect_error(countValid(testTP, trait = 1),
+             "trait should be a character string of length one")
+valCount <- countValid(testTP, trait = "t1")
+expect_equivalent(valCount, rep(24, times = 5))
+expect_equal(names(valCount),
+             c("2018-06-01 16:37:00", "2018-06-02 09:07:00",
+               "2018-06-02 11:37:00", "2018-06-02 14:37:00",
+               "2018-06-02 16:37:00"))
+
+
+## Test countValidPlot
+expect_error(countValidPlot(1),
+             "TP should be an object of class TP")
+expect_error(countValidPlot(testTP, trait = 1),
+             "trait should be a character string of length one")
+expect_error(countValidPlot(testTP, trait = "a"),
+             "a should be a column in TP")
+expect_error(countValidPlot(testTP, trait = "t1", plotIds = 1),
+             "plotIds should be NULL or a character vector")
+expect_error(countValidPlot(testTP, trait = "t1", plotIds = "a"),
+             "All plotIds should be in TP")
+valPlotCount <- countValidPlot(testTP, trait = "t1")
+expect_equivalent(valPlotCount, c(rep(5, times = 7), 0, rep(5, times = 17)))
+expect_equal(names(valPlotCount), unique(testDat$pos))

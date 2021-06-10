@@ -84,12 +84,12 @@ fitSpline <- function(inDat,
          paste(corrCols, collapse = ", "))
   }
   if (!is.null(genotypes) &&
-      (!is.character(genotypes) &&
+      (!is.character(genotypes) ||
        !all(genotypes %in% inDat[["genotype"]]))) {
     stop("genotypes should be a character vector of genotypes in inDat.\n")
   }
   if (!is.null(plotIds) &&
-      (!is.character(plotIds) && !all(plotIds %in% inDat[["genotype"]]))) {
+      (!is.character(plotIds) || !all(plotIds %in% inDat[["plotId"]]))) {
     stop("plotIds should be a character vector of plotIds in inDat.\n")
   }
   if (!is.numeric(knots) || length(knots) > 1 || knots < 0) {
@@ -301,7 +301,8 @@ plot.HTPSpline <- function(x,
                            outFile = NULL,
                            outFileOpts = NULL) {
   plotType <- match.arg(plotType)
-  plotVar <- if (plotType == "predictions") "pred.value" else "deriv"
+  plotVar <- if (plotType == "predictions") "pred.value" else if
+  (plotType == "derivatives") "deriv" else "deriv2"
   modDat <- attr(x, which = "modDat")
   trait <- attr(x, which = "trait")
   fitLevel <- attr(x, which = "fitLevel")
@@ -309,12 +310,12 @@ plot.HTPSpline <- function(x,
   useTimeNumber <- attr(x, which = "useTimeNumber")
   predDat <- x$predDat
   if (!is.null(genotypes) &&
-      (!is.character(genotypes) &&
+      (!is.character(genotypes) ||
        !all(genotypes %in% predDat[["genotype"]]))) {
     stop("genotypes should be a character vector of genotypes in predDat.\n")
   }
   if (!is.null(plotIds) &&
-      (!is.character(plotIds) && !all(plotIds %in% predDat[["genotype"]]))) {
+      (!is.character(plotIds) || !all(plotIds %in% predDat[["plotId"]]))) {
     stop("plotIds should be a character vector of plotIds in predDat.\n")
   }
   if (!is.null(outFile)) {
@@ -335,23 +336,25 @@ plot.HTPSpline <- function(x,
   }
   ## Remove plotIds with only NA from data.
   ## This can be caused by removing outliers.
-  if (fitLevel == "genotype" && useGenoDecomp) {
-    modDat[["fitLevInt"]] <-
-      interaction(modDat[["genotype"]], modDat[["geno.decomp"]], drop = TRUE)
-    predDat[["fitLevInt"]] <-
-      interaction(predDat[["genotype"]], predDat[["geno.decomp"]], drop = TRUE)
-    fitLevel <- "fitLevInt"
-    fitLevels <- levels(modDat[["fitLevInt"]])
-    plotLevel <- c("genotype", "geno.decomp")
-  } else {
-    fitLevels <- unique(modDat[[fitLevel]])
-    plotLevel <- fitLevel
+  if (nrow(predDat) > 0) {
+    if (fitLevel == "genotype" && useGenoDecomp) {
+      modDat[["fitLevInt"]] <-
+        interaction(modDat[["genotype"]], modDat[["geno.decomp"]], drop = TRUE)
+      predDat[["fitLevInt"]] <-
+        interaction(predDat[["genotype"]], predDat[["geno.decomp"]], drop = TRUE)
+      fitLevel <- "fitLevInt"
+      fitLevels <- levels(modDat[["fitLevInt"]])
+      plotLevel <- c("genotype", "geno.decomp")
+    } else {
+      fitLevels <- unique(modDat[[fitLevel]])
+      plotLevel <- fitLevel
+    }
+    allNA <- sapply(X = fitLevels, FUN = function(x) {
+      all(is.na(modDat[modDat[[fitLevel]] == x, trait]))
+    })
+    modDat <- modDat[!modDat[[fitLevel]] %in% fitLevels[allNA], ]
+    predDat <- predDat[!predDat[[fitLevel]] %in% fitLevels[allNA], ]
   }
-  allNA <- sapply(X = fitLevels, FUN = function(x) {
-    all(is.na(modDat[modDat[[fitLevel]] == x, trait]))
-  })
-  modDat <- modDat[!modDat[[fitLevel]] %in% fitLevels[allNA], ]
-  predDat <- predDat[!predDat[[fitLevel]] %in% fitLevels[allNA], ]
   modDat <- droplevels(modDat)
   predDat <- droplevels(predDat)
   if (nrow(predDat) == 0) {
@@ -362,8 +365,10 @@ plot.HTPSpline <- function(x,
   if (is.null(title)) {
     if (plotType == "predictions") {
       title <- "Corrected data and P-spline prediction"
-    } else {
+    } else if (plotType == "derivatives") {
       title <- "P-spline first derivatives"
+    } else {
+      title <- "P-spline second derivatives"
     }
   }
   timeVar <- if (useTimeNumber) "timeNumber" else "timePoint"
@@ -437,6 +442,9 @@ plot.HTPSpline <- function(x,
 #' ("min"), maximum ("max"), mean, area under the curve ("AUC") or a percentile.
 #' Percentiles should be given as p + percentile. E.g. for the 10th percentile
 #' specify what = "p10"
+#' @param AUCScale The area under the curve is dependent on the scale used on
+#' the x-axis. By default the area is computed assuming a scale in minutes. This
+#' can be changed to either hours or days.
 #' @param timeMin The lower bound of the time interval from which the
 #' estimates should be extracted. If \code{NULL} the smallest time value for
 #' which the splines were fitted is used.
@@ -476,6 +484,7 @@ estimateSplineParameters <- function(HTPSpline,
                                      estimate = c("predictions", "derivatives",
                                                   "derivatives2"),
                                      what = c("min", "max", "mean", "AUC", "p"),
+                                     AUCScale = c("min", "hour", "day"),
                                      timeMin = NULL,
                                      timeMax = NULL,
                                      genotypes = NULL,
@@ -496,12 +505,12 @@ estimateSplineParameters <- function(HTPSpline,
   fitLevel <- attr(HTPSpline, which = "fitLevel")
   predDat <- HTPSpline$predDat
   if (!is.null(genotypes) &&
-      (!is.character(genotypes) &&
+      (!is.character(genotypes) ||
        !all(genotypes %in% predDat[["genotype"]]))) {
     stop("genotypes should be a character vector of genotypes in predDat.\n")
   }
   if (!is.null(plotIds) &&
-      (!is.character(plotIds) && !all(plotIds %in% predDat[["genotype"]]))) {
+      (!is.character(plotIds) || !all(plotIds %in% predDat[["plotId"]]))) {
     stop("plotIds should be a character vector of plotIds in predDat.\n")
   }
   ## Restrict predDat to selected genotypes and plotIds.
@@ -539,28 +548,48 @@ estimateSplineParameters <- function(HTPSpline,
   predDat <- predDat[predDat[[timeVar]] >= timeMin &
                        predDat[[timeVar]] <= timeMax, ]
   ## Area under the curve corresponds to sum.
-  if (what == "AUC") estFun <- "sum"
+  if (what == "AUC") {
+    intWidth <- diff(predDat[1:2, timeVar])
+    if (timeVar == "timePoint") {
+      ## x-axis scale for time variables as computed by diff is in minutes.
+      ## For conversino to hours/days divide by appropriate factor.
+      AUCScale <- match.arg(AUCScale)
+      if (AUCScale == "hour") {
+        intWidth <- intWidth / 60
+      } else if (AUCScale == "day") {
+        intWidth <- intWidth / (24 * 60)
+      }
+    }
+    estFun <- function(x, ...) {
+      ## All intervals have the same (small) width.
+      ## Just summing and multiplying by this width gives a good
+      ## approximation of the area under the curve.
+      return(as.numeric(sum(x) * intWidth))
+    }
+  }
   ## Percentiles are calculated using quantile
   if (substr(what, 1, 1) == "p") estFun <- "quantile"
   ## Get estimates.
   res <- aggregate(x = predDat[[estVar]],
                    by = predDat[c("genotype", if (useGenoDecomp) "geno.decomp",
                                   if (fitLevel == "plotId") "plotId")],
-                   FUN = estFun, probs = if (estFun == "quantile") percentile)
+                   FUN = estFun,
+                   probs = if (is.character(estFun) &&
+                               estFun == "quantile") percentile)
   colnames(res)[colnames(res) == "x"] <- paste0(what, "_", estimate)
   ## For min and max get corresponding time point.
   if (what %in% c("min", "max")) {
     res <- merge(res, predDat, by.x = colnames(res),
                  by.y = c(colnames(res)[-ncol(res)], estVar))
-    res <- res[, 1:5]
-    colnames(res)[4:5] <- paste0(what, "_", colnames(res)[4:5])
+    res <- res[, 1:(4 + (fitLevel == "plotId"))]
+    colnames(res)[ncol(res)] <- paste0(what, "_", colnames(res)[ncol(res)])
   }
   return(res)
 }
 
 #### Helper function for fitting splines.
 
-#' Spectral decompositoin of D'D
+#' Spectral decomposition of D'D
 #'
 #' Spectral decomposition of D'D, returns a q x (q - ord) matrix.
 #' @noRd
@@ -605,7 +634,7 @@ PsplinesREML <- function(x,
   pord <- 2
   degree <- 3
   ## Construct B-Spline base.
-  B <- splines::splineDesign(knots = knots, x = x, derivs = rep(0,length(x)),
+  B <- splines::splineDesign(knots = knots, x = x, derivs = rep(0, length(x)),
                              ord = degree + 1)
   q <- ncol(B)
   Usc <- calcUsc(q = q, ord = pord)
