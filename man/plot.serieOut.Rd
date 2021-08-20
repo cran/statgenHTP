@@ -7,6 +7,7 @@
 \method{plot}{serieOut}(
   x,
   ...,
+  reason = c("mean corr", "angle", "slope"),
   genotypes = NULL,
   geno.decomp = NULL,
   useTimeNumber = FALSE,
@@ -19,6 +20,9 @@
 \item{x}{An object of class \code{serieOut}.}
 
 \item{...}{Ignored.}
+
+\item{reason}{A character vector indicating which types of outliers should
+be plotted.}
 
 \item{genotypes}{A character vector indicating which genotypes should be
 plotted. If \code{NULL} all genotypes are plotted.}
@@ -76,6 +80,10 @@ outVator <- detectSerieOut(corrDat = spatCorrectedVator,
 
 ## The `outVator` can be visualized for selected genotypes.
 plot(outVator, genotypes = "G151")
+
+## Only visualize outliers tagged because of low correlation
+## between slopes of the regression.
+plot(outVator, genotypes = "G151", reason = "slope")
 }
 
 }

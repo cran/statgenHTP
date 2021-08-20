@@ -128,19 +128,6 @@ detectSerieOut <- function(corrDat,
   if (!is.numeric(thrSlope) || any(thrSlope < 0) || any(thrSlope > 1)) {
     stop("thrSlope should be a numerical vector with values between 0 and 1.\n")
   }
-  genoPlotId <- sapply(X = genotypes, FUN = function(genotype) {
-    length(unique(corrDat[corrDat[["genotype"]] == genotype, "plotId"]))
-  })
-  genoPlotIdLim <- names(genoPlotId[genoPlotId < 3])
-  if (length(genoPlotIdLim) > 0) {
-    warning("The following genotypes have less than 3 plotIds and are skipped ",
-            "in the outlier detection:\n",
-            paste(genoPlotIdLim, collapse = ", "), "\n", call. = FALSE)
-    genotypes <- genotypes[!genotypes %in% genoPlotIdLim]
-    if (length(genotypes) == 0) {
-      stop("No genotypes left for performing outlier detection.\n")
-    }
-  }
   ## Restrict corrDat to genotypes.
   corrDat <- corrDat[corrDat[["genotype"]] %in% genotypes, ]
   ## Get number of values for geno.decomp.
@@ -229,6 +216,17 @@ detectSerieOut <- function(corrDat,
                         }
                         return(plantDat)
                       })
+  genoPlotId <- sapply(X = plantDats, FUN = ncol)
+  genoPlotIdLim <- names(genoPlotId[genoPlotId < 3])
+  if (length(genoPlotIdLim) > 0) {
+    warning("The following genotypes have less than 3 plotIds and are skipped ",
+            "in the outlier detection:\n",
+            paste(genoPlotIdLim, collapse = ", "), "\n", call. = FALSE)
+    plantDats[genoPlotIdLim] <- NULL
+    if (length(plantDats) == 0) {
+      stop("No genotypes left for performing outlier detection.\n")
+    }
+  }
   ## Compute correlation matrices.
   cormats <- lapply(X = plantDats, FUN = function(plantDat) {
     if (!is.null(dim(plantDat))) {
@@ -266,16 +264,19 @@ detectSerieOut <- function(corrDat,
     if (!is.null(dim(plantDat))) {
       ## if there are plants, estimate the slopes.
       ## Convert matrix to data.frame for lm.
-      plantDat <- as.data.frame(plantDat)
+      plantDatLm <- as.data.frame(plantDat)
       ## Construct empty matrix for storing results.
-      slopemat <- matrix(nrow = ncol(plantDat), ncol = ncol(plantDat),
-                       dimnames = list(colnames(plantDat), colnames(plantDat)))
+      slopemat <- matrix(nrow = ncol(plantDatLm), ncol = ncol(plantDatLm),
+                         dimnames = list(colnames(plantDatLm),
+                                         colnames(plantDatLm)))
       ## Compute slope per pair of plots.
       slopemat[lower.tri(slopemat)] <-
-        combn(x = colnames(plantDat), m = 2, FUN = function(plants) {
+        combn(x = colnames(plantDatLm), m = 2, FUN = function(plants) {
+          ## Wrap plants in ` to allow for irregular names in formula.
+          plants <- paste0("`", plants, "`")
           ## Fit linear model and extract slope.
           modForm <- formula(paste(plants, collapse = "~"))
-          slope <- abs(coef(lm(modForm, data = plantDat))[2])
+          slope <- abs(coef(lm(modForm, data = plantDatLm))[2])
           if (slope > 1) slope <- 1 / slope
           return(slope)
         }, simplify = TRUE)
@@ -323,6 +324,11 @@ detectSerieOut <- function(corrDat,
     cormat[lower.tri(cormat)] <- NA
     ## Melt to format used by ggplot.
     meltedCormat <- reshape2::melt(cormat, na.rm = TRUE)
+    ## Convert Var1 and Var2 to factor needed for plotting.
+    if (!is.factor(meltedCormat[["Var1"]])) {
+      meltedCormat[["Var1"]] <- as.factor(meltedCormat[["Var1"]])
+      meltedCormat[["Var2"]] <- as.factor(meltedCormat[["Var2"]])
+    }
     attr(meltedCormat, which = "thrCor") <- attr(cormat, which = "thrCor")
     return(meltedCormat)
   })
@@ -384,7 +390,13 @@ detectSerieOut <- function(corrDat,
     slopemat[lower.tri(slopemat)] <- NA
     ## Melt to format used by ggplot.
     meltedSlopemat <- reshape2::melt(slopemat, na.rm = TRUE)
-    attr(meltedSlopemat, which = "thrCor") <- attr(slopemat, which = "thrCor")
+    ## Convert Var1 and Var2 to factor needed for plotting.
+    if (!is.factor(meltedSlopemat[["Var1"]])) {
+      meltedSlopemat[["Var1"]] <- as.factor(meltedSlopemat[["Var1"]])
+      meltedSlopemat[["Var2"]] <- as.factor(meltedSlopemat[["Var2"]])
+    }
+    attr(meltedSlopemat, which = "thrSlope") <-
+      attr(slopemat, which = "thrSlope")
     return(meltedSlopemat)
   })
   ## Create full data.frame with annotated plants.
@@ -433,6 +445,8 @@ detectSerieOut <- function(corrDat,
 #'
 #' @param x An object of class \code{serieOut}.
 #' @param ... Ignored.
+#' @param reason A character vector indicating which types of outliers should
+#' be plotted.
 #' @param genotypes A character vector indicating which genotypes should be
 #' plotted. If \code{NULL} all genotypes are plotted.
 #' @param geno.decomp A character vector indicating which levels of
@@ -473,6 +487,10 @@ detectSerieOut <- function(corrDat,
 #'
 #' ## The `outVator` can be visualized for selected genotypes.
 #' plot(outVator, genotypes = "G151")
+#'
+#' ## Only visualize outliers tagged because of low correlation
+#' ## between slopes of the regression.
+#' plot(outVator, genotypes = "G151", reason = "slope")
 #' }
 #'
 #' @family functions for detecting outliers for series of observations
@@ -480,6 +498,7 @@ detectSerieOut <- function(corrDat,
 #' @export
 plot.serieOut <- function(x,
                           ...,
+                          reason = c("mean corr", "angle", "slope"),
                           genotypes = NULL,
                           geno.decomp = NULL,
                           useTimeNumber = FALSE,
@@ -495,6 +514,9 @@ plot.serieOut <- function(x,
   trait <- attr(x = x, which = "trait")
   geno.decompVar <- attr(x = x, which = "geno.decomp")
   plotInfo <- attr(x = x, which = "plotInfo")
+  ## Restrict x to selected reasons.
+  reason <- match.arg(reason, several.ok = TRUE)
+  x <- x[x[["reason"]] %in% reason, ]
   ## Restrict to selected levels of geno.decomp.
   if (!is.null(geno.decomp) && !is.null(geno.decompVar)) {
     if (!all(geno.decomp %in% plotInfo[[geno.decompVar]])) {
@@ -545,13 +567,13 @@ plot.serieOut <- function(x,
     plotIds <- unique(genoPreds[[genotype]][["plotId"]])
     plotShapes <- setNames(rep(1, times = length(plotIds)), plotIds)
     ## Annotated plants get a closed circle.
-    plotShapes[names(plotShapes) %in% x[["plotId"]]] <- 19
+    plotShapes[names(plotShapes) %in% x[["plotId"]]] <- 21
     ## Plot of time course per genotype: corrected data + spline per plant.
     kinetic <- ggplot2::ggplot(genoDats[[genotype]],
                                ggplot2::aes_string(x = timeVar2, y = trait,
                                                    color = "plotId")) +
       ggplot2::geom_point(ggplot2::aes_string(shape = "plotId"), size = 2,
-                          na.rm = TRUE) +
+                          na.rm = TRUE, fill = "red") +
       ggplot2::geom_line(data = genoPreds[[genotype]],
                          ggplot2::aes_string(x = timeVar,
                                              y = "pred.value"),
@@ -567,45 +589,60 @@ plot.serieOut <- function(x,
                                   labels = scales::date_format("%B %d"))
     }
     ## Correlation plot.
-    thrCorGeno <- attr(cormats[[genotype]], which = "thrCor")
-    thrSlopeGeno <- attr(cormats[[genotype]], which = "thrSlope")
-    correl <- ggplot2::ggplot(data = cormats[[genotype]],
-                              ggplot2::aes_string("Var2", "Var1",
-                                                  fill = "value")) +
-      ggplot2::geom_tile(color = "white") +
-      ggplot2::scale_fill_gradientn(colors = c("red", "white", "blue"),
-                                    values = scales::rescale(c(minCor,
-                                                               thrCorGeno, 1)),
-                                    limits = c(minCor, 1),
-                                    name = "Pearson\nCorrelation") +
-      ggnewscale::new_scale_fill() +
-      ## Add slope to upper left.
-      ggplot2::geom_tile(data = slopemats[[genotype]],
-                         ggplot2::aes_string("Var1", "Var2", fill = "value"),
-                         color = "white") +
-      ggplot2::scale_fill_gradientn(colors = c("cyan", "white", "darkgreen"),
-                                     values = scales::rescale(c(minSlope,
-                                                                thrSlopeGeno, 1)),
-                                     limits = c(minSlope, 1),
-                                     name = "Slope\nCorrelation") +
-      ## Move y-axis to the right.
-      ggplot2::scale_y_discrete(position = "right") +
-      ## Use coord fixed to create a square shaped output.
-      ggplot2::coord_fixed() +
-      ggplot2::theme(panel.background = ggplot2::element_rect(fill = "white"),
-                     panel.border = ggplot2::element_blank(),
-                     panel.grid = ggplot2::element_line(color = "grey92"),
-                     plot.title = ggplot2::element_text(hjust = 0.5),
-                     axis.ticks = ggplot2::element_blank(),
-                     panel.grid.major = ggplot2::element_blank(),
-                     panel.grid.minor = ggplot2::element_blank(),
-                     axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,
-                                                         hjust = 1),
-                     legend.position = "left",
-                     legend.box = "horizontal") +
-      ggplot2::labs(title = "Correlations", x = NULL, y = NULL)
+    if (any(c("mean corr", "slope") %in% reason)) {
+      thrCorGeno <- attr(cormats[[genotype]], which = "thrCor")
+      thrSlopeGeno <- attr(slopemats[[genotype]], which = "thrSlope")
+      correl <- ggplot2::ggplot(data = cormats[[genotype]],
+                                ggplot2::aes_string("Var2", "Var1",
+                                                    fill = "value")) +
+        ## Move y-axis to the right.
+        ggplot2::scale_y_discrete(position = "right") +
+        ## Use coord fixed to create a square shaped output.
+        ggplot2::coord_fixed() +
+        ggplot2::theme(panel.background = ggplot2::element_rect(fill = "white"),
+                       panel.border = ggplot2::element_blank(),
+                       panel.grid = ggplot2::element_line(color = "grey92"),
+                       plot.title = ggplot2::element_text(hjust = 0.5),
+                       axis.ticks = ggplot2::element_blank(),
+                       panel.grid.major = ggplot2::element_blank(),
+                       panel.grid.minor = ggplot2::element_blank(),
+                       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,
+                                                           hjust = 1),
+                       legend.position = "left",
+                       legend.box = "horizontal") +
+        ggplot2::labs(title = "Correlations", x = NULL, y = NULL)
+      if ("mean corr" %in% reason) {
+        correl <- correl +
+          ggplot2::geom_tile(color = "white") +
+          ggplot2::scale_fill_gradientn(colors = c("red", "white", "blue"),
+                                        values = scales::rescale(c(minCor,
+                                                                   thrCorGeno, 1)),
+                                        limits = c(minCor, 1),
+                                        name = "Pearson\nCorrelation")
+      }
+      if ("slope" %in% reason) {
+        correl <- correl +
+          ggnewscale::new_scale_fill() +
+          ## Add slope to upper left.
+          ggplot2::geom_tile(data = slopemats[[genotype]],
+                             ggplot2::aes_string("Var1", "Var2",
+                                                 fill = "value"),
+                             color = "white") +
+          ggplot2::scale_fill_gradientn(colors = c("cyan", "white", "darkgreen"),
+                                        values = scales::rescale(c(minSlope,
+                                                                   thrSlopeGeno, 1)),
+                                        limits = c(minSlope, 1),
+                                        name = "Slope\nCorrelation")
+        }
+    } else {
+      correl <- grid::nullGrob()
+    }
     ## PCA biplot.
-    pcaplot <- factoextra::fviz_pca_var(plantPcas[[genotype]])
+    if ("angle" %in% reason) {
+      pcaplot <- factoextra::fviz_pca_var(plantPcas[[genotype]])
+    } else {
+      pcaplot <- grid::nullGrob()
+    }
     ## Arrange plots.
     lay <- rbind(c(1, 1), c(1, 1), c(1, 1), c(2, 3), c(2, 3))
     ## grid arrange always plots results.
@@ -644,6 +681,8 @@ plot.serieOut <- function(x,
 #' \code{\link{fitSpline}} function.
 #' @param serieOut A data.frame with at least the column plotId with
 #' values corresponding to those in dat/fitSpline.
+#' @param reason A character vector indicating which types of outliers should
+#' be replaced by NA.
 #' @param traits The traits that should be replaced by NA. When using the
 #' output of \code{detectSerieOut} as input for \code{serieOut} this defaults
 #' to the trait used for when detecting the outliers.
@@ -678,9 +717,14 @@ plot.serieOut <- function(x,
 #' spatCorrectedVatorOut <- removeSerieOut(dat = spatCorrectedVator,
 #'                                         serieOut = outVator)
 #'
+#' ## Only replace the slope outliers by NA in the corrected data.
+#' spatCorrectedVatorOut2 <- removeSerieOut(dat = spatCorrectedVator,
+#'                                         serieOut = outVator,
+#'                                         reason = "slope")
+#'
 #' ## Replace the outliers by NA in the corrected data.
 #' ## Replace both the corrected value and the raw trait value by NA.
-#' spatCorrectedVatorOut2 <-
+#' spatCorrectedVatorOut3 <-
 #'   removeSerieOut(dat = spatCorrectedVator,
 #'                  serieOut = outVator,
 #'                  traits = c("EffpsII", "EffpsII_corr"))
@@ -691,8 +735,10 @@ plot.serieOut <- function(x,
 removeSerieOut <- function(dat = NULL,
                            fitSpline = NULL,
                            serieOut,
+                           reason = c("mean corr", "angle", "slope"),
                            traits = attr(x = serieOut,
-                                        which = "trait")) {
+                                         which = "trait")) {
+  reason <- match.arg(reason, several.ok = TRUE)
   ## Check that one of dat and fitSpline are specified.
   if ((is.null(dat) && is.null(fitSpline)) || (
     !is.null(dat) && !is.null(fitSpline))) {
@@ -718,6 +764,12 @@ removeSerieOut <- function(dat = NULL,
     if (!hasName(serieOut, "plotId")) {
       stop("serieOut should at least contain the column plotId.\n")
     }
+    if (length(reason) < 3)
+      if (!hasName(serieOut, "reason")) {
+        stop("serieOut should contain a column reason.\n")
+      } else {
+        serieOut <- serieOut[serieOut[["reason"]] %in% reason, ]
+      }
     if (!is.null(dat)) {
       ## Remove plots that are in serieOut.
       for (trait in traits) {

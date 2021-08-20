@@ -50,8 +50,8 @@
 #' plot(fit.spline, genotypes = "G160")
 #'
 #' ## Visualize the P-Spline predictions and first derivatives for one plant.
-#' plot(fit.spline, plotIds = "c10r29", plotType =  "predictions")
-#' plot(fit.spline, plotIds = "c10r29", plotType =  "derivatives")
+#' plot(fit.spline, plotIds = "c10r29", plotType = "predictions")
+#' plot(fit.spline, plotIds = "c10r29", plotType = "derivatives")
 #'
 #' @family functions for fitting splines
 #'
@@ -71,8 +71,9 @@ fitSpline <- function(inDat,
   if (!inherits(inDat, "data.frame")) {
     stop("inDat should be a data.frame.\n")
   }
-  if (useTimeNumber && (is.null(timeNumber) || !is.character(timeNumber) ||
-                        length(timeNumber) > 1)) {
+  if (isTRUE(useTimeNumber) &&
+      (is.null(timeNumber) || !is.character(timeNumber) ||
+       length(timeNumber) > 1)) {
     stop("timeNumber should be a character string of length 1.\n")
   }
   fitLevel <- if (hasName(x = inDat, name = "plotId")) "plotId" else
@@ -82,6 +83,9 @@ fitSpline <- function(inDat,
   if (!all(hasName(x = inDat, name = corrCols))) {
     stop("inDat should at least contain the following columns: ",
          paste(corrCols, collapse = ", "))
+  }
+  if (!inherits(inDat[[fitLevel]], "factor")) {
+    stop(fitLevel, " should be a factor column in inDat.\n")
   }
   if (!is.null(genotypes) &&
       (!is.character(genotypes) ||
@@ -102,6 +106,9 @@ fitSpline <- function(inDat,
     stop("minNoTP should be a numerical value.\n")
   }
   if (!useTimeNumber) {
+    if (!inherits(inDat[["timePoint"]], "POSIXct")) {
+      stop("Column timePoint should be of class POSIXct.\n")
+    }
     ## Convert time point to time number with the first time point as 0.
     minTime <- min(inDat[["timePoint"]], na.rm = TRUE)
     inDat[["timeNumber"]] <- as.numeric(inDat[["timePoint"]] - minTime)
@@ -196,8 +203,8 @@ fitSpline <- function(inDat,
     ## Manually select minimum number of time points.
     if (length(unique(dat[!is.na(dat[[trait]]), "timeNumber"])) >= minTP) {
       ## Manually set the number of knots.
-      xmin <- min(dat[["timeNumber"]]) - 1e-10
-      xmax <- max(dat[["timeNumber"]]) + 1e-10
+      xmin <- min(dat[!is.na(dat[[trait]]), "timeNumber"]) - 1e-10
+      xmax <- max(dat[!is.na(dat[[trait]]), "timeNumber"]) + 1e-10
       ## Construct vector of knots.
       knotsVec <- PsplinesKnots(xmin = xmin, xmax = xmax, degree = 3,
                                 nseg = knots)
@@ -209,9 +216,9 @@ fitSpline <- function(inDat,
       coeff[["type"]] <- paste0("timeNumber", seq_len(nrow(coeff)))
       ## Restrict dense grid to points within observation range.
       timeRangePl <- timeRange[timeRange[["timeNumber"]] >=
-                                 min(dat[["timeNumber"]]) &
+                                 min(dat[!is.na(dat[[trait]]), "timeNumber"]) &
                                  timeRange[["timeNumber"]] <=
-                                 max(dat[["timeNumber"]]),
+                                 max(dat[!is.na(dat[[trait]]), "timeNumber"]),
                                , drop = FALSE]
       ## Predictions on a dense grid.
       yPred <- predict(obj, x = timeRangePl$timeNumber)
@@ -426,165 +433,6 @@ plot.HTPSpline <- function(x,
     }
   }
   invisible(pPag)
-}
-
-#' Extract estimates from fitted splines.
-#'
-#' Function for extracting parameter estimates from fitted splines on a
-#' specified interval.
-#'
-#' @param HTPSpline An object of class HTPSpline, the output of the
-#' \code{\link{fitSpline}} function.
-#' @param estimate The P-Spline component for which the estimate should be
-#' extracted, the predictions, the first derivatives or the second derivatives
-#' ("derivatives2")
-#' @param what The type of estimate that should be extracted. Either minimum
-#' ("min"), maximum ("max"), mean, area under the curve ("AUC") or a percentile.
-#' Percentiles should be given as p + percentile. E.g. for the 10th percentile
-#' specify what = "p10"
-#' @param AUCScale The area under the curve is dependent on the scale used on
-#' the x-axis. By default the area is computed assuming a scale in minutes. This
-#' can be changed to either hours or days.
-#' @param timeMin The lower bound of the time interval from which the
-#' estimates should be extracted. If \code{NULL} the smallest time value for
-#' which the splines were fitted is used.
-#' @param timeMax The upper bound of the time interval from which the
-#' estimates should be extracted. If \code{NULL} the largest time value for
-#' which the splines were fitted is used.
-#' @param genotypes A character vector indicating the genotypes for which
-#' estimates should be extracted. If \code{NULL}, estimates will be extracted
-#' for all genotypes for which splines where fitted.
-#' @param plotIds A character vector indicating the plotIds for which
-#' estimates should be extracted. If \code{NULL}, estimates will be extracted
-#' for all plotIds for which splines where fitted.
-#'
-#' @return A data.frame containing the estimated parameters.
-#'
-#' @examples
-#' ## Run the function to fit P-splines on a subset of genotypes.
-#' subGeno <- c("G160", "G151")
-#' fit.spline <- fitSpline(inDat = spatCorrectedVator,
-#'                         trait = "EffpsII_corr",
-#'                         genotypes = subGeno,
-#'                         knots = 50)
-#'
-#' ## Estimate the maximum value of the predictions at the beginning of the time course.
-#' paramVator <- estimateSplineParameters(HTPSpline = fit.spline,
-#'                                        estimate = "predictions",
-#'                                        what = "max",
-#'                                        timeMin = 1527784620,
-#'                                        timeMax = 1528500000,
-#'                                        genotypes = subGeno)
-#' head(paramVator)
-#'
-#' @family functions for fitting splines
-#'
-#' @export
-estimateSplineParameters <- function(HTPSpline,
-                                     estimate = c("predictions", "derivatives",
-                                                  "derivatives2"),
-                                     what = c("min", "max", "mean", "AUC", "p"),
-                                     AUCScale = c("min", "hour", "day"),
-                                     timeMin = NULL,
-                                     timeMax = NULL,
-                                     genotypes = NULL,
-                                     plotIds = NULL) {
-  estimate <- match.arg(estimate)
-  if (substr(what, 1, 1) == "p") {
-    percentile <- suppressWarnings(as.numeric(substring(what, 2))) / 100
-    if (is.na(percentile) || percentile < 0 || percentile > 1) {
-      stop("A percentile should be give as pN, with N between 0 and 100.\n")
-    }
-  } else {
-    estFun <- match.arg(what)
-  }
-  estVar <- if (estimate == "predictions") "pred.value" else if
-  (estimate == "derivatives") "deriv" else "deriv2"
-  useTimeNumber <- attr(HTPSpline, which = "useTimeNumber")
-  useGenoDecomp <- attr(HTPSpline, which = "useGenoDecomp")
-  fitLevel <- attr(HTPSpline, which = "fitLevel")
-  predDat <- HTPSpline$predDat
-  if (!is.null(genotypes) &&
-      (!is.character(genotypes) ||
-       !all(genotypes %in% predDat[["genotype"]]))) {
-    stop("genotypes should be a character vector of genotypes in predDat.\n")
-  }
-  if (!is.null(plotIds) &&
-      (!is.character(plotIds) || !all(plotIds %in% predDat[["plotId"]]))) {
-    stop("plotIds should be a character vector of plotIds in predDat.\n")
-  }
-  ## Restrict predDat to selected genotypes and plotIds.
-  if (!is.null(genotypes)) {
-    predDat <- predDat[predDat[["genotype"]] %in% genotypes, ]
-  }
-  if (!is.null(plotIds)) {
-    predDat <- predDat[predDat[["plotId"]] %in% plotIds, ]
-  }
-  if (nrow(predDat) == 0) {
-    stop("At least one valid combination of genotype and plotId should be ",
-         "selected.\n")
-  }
-  timeVar <- if (useTimeNumber) "timeNumber" else "timePoint"
-  if (is.null(timeMin)) {
-    timeMin <- min(predDat[[timeVar]])
-  } else {
-    if (timeMin < min(predDat[[timeVar]]) ||
-        timeMin > max(predDat[[timeVar]])) {
-      stop("timeMin should be within the time interval in the data.\n")
-    }
-  }
-  if (is.null(timeMax)) {
-    timeMax <- max(predDat[[timeVar]])
-  } else {
-    if (timeMax < min(predDat[[timeVar]]) ||
-        timeMax > max(predDat[[timeVar]])) {
-      stop("timeMax should be within the time interval in the data.\n")
-    }
-  }
-  if (timeMin >= timeMax) {
-    stop("timeMax should be larger than timeMin.\n")
-  }
-  ## Restrict predDat to time interval.
-  predDat <- predDat[predDat[[timeVar]] >= timeMin &
-                       predDat[[timeVar]] <= timeMax, ]
-  ## Area under the curve corresponds to sum.
-  if (what == "AUC") {
-    intWidth <- diff(predDat[1:2, timeVar])
-    if (timeVar == "timePoint") {
-      ## x-axis scale for time variables as computed by diff is in minutes.
-      ## For conversino to hours/days divide by appropriate factor.
-      AUCScale <- match.arg(AUCScale)
-      if (AUCScale == "hour") {
-        intWidth <- intWidth / 60
-      } else if (AUCScale == "day") {
-        intWidth <- intWidth / (24 * 60)
-      }
-    }
-    estFun <- function(x, ...) {
-      ## All intervals have the same (small) width.
-      ## Just summing and multiplying by this width gives a good
-      ## approximation of the area under the curve.
-      return(as.numeric(sum(x) * intWidth))
-    }
-  }
-  ## Percentiles are calculated using quantile
-  if (substr(what, 1, 1) == "p") estFun <- "quantile"
-  ## Get estimates.
-  res <- aggregate(x = predDat[[estVar]],
-                   by = predDat[c("genotype", if (useGenoDecomp) "geno.decomp",
-                                  if (fitLevel == "plotId") "plotId")],
-                   FUN = estFun,
-                   probs = if (is.character(estFun) &&
-                               estFun == "quantile") percentile)
-  colnames(res)[colnames(res) == "x"] <- paste0(what, "_", estimate)
-  ## For min and max get corresponding time point.
-  if (what %in% c("min", "max")) {
-    res <- merge(res, predDat, by.x = colnames(res),
-                 by.y = c(colnames(res)[-ncol(res)], estVar))
-    res <- res[, 1:(4 + (fitLevel == "plotId"))]
-    colnames(res)[ncol(res)] <- paste0(what, "_", colnames(res)[ncol(res)])
-  }
-  return(res)
 }
 
 #### Helper function for fitting splines.

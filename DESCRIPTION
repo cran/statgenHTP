@@ -1,7 +1,7 @@
 Package: statgenHTP
 Title: High Throughput Phenotyping (HTP) Data Analysis
-Version: 1.0.3
-Date: 2021-06-17
+Version: 1.0.4
+Date: 2021-08-20
 Authors@R: 
     c(person(given = "Emilie J",
              family = "Millet",
@@ -55,7 +55,7 @@ URL: https://biometris.github.io/statgenHTP/index.html,
         https://github.com/Biometris/statgenHTP/
 BugReports: https://github.com/Biometris/statgenHTP/issues
 NeedsCompilation: no
-Packaged: 2021-06-17 13:54:35 UTC; rossu027
+Packaged: 2021-08-20 13:09:27 UTC; rossu027
 Author: Emilie J Millet [aut] (<https://orcid.org/0000-0002-2913-4892>),
   Maria Xose Rodriguez Alvarez [aut]
     (<https://orcid.org/0000-0002-1329-9238>),
@@ -69,4 +69,4 @@ Author: Emilie J Millet [aut] (<https://orcid.org/0000-0002-2913-4892>),
   Martin Boer [aut]
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2021-06-18 09:40:02 UTC
+Date/Publication: 2021-08-20 15:00:02 UTC

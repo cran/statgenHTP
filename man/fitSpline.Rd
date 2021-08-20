@@ -75,13 +75,12 @@ head(coefDat)
 plot(fit.spline, genotypes = "G160")
 
 ## Visualize the P-Spline predictions and first derivatives for one plant.
-plot(fit.spline, plotIds = "c10r29", plotType =  "predictions")
-plot(fit.spline, plotIds = "c10r29", plotType =  "derivatives")
+plot(fit.spline, plotIds = "c10r29", plotType = "predictions")
+plot(fit.spline, plotIds = "c10r29", plotType = "derivatives")
 
 }
 \seealso{
 Other functions for fitting splines: 
-\code{\link{estimateSplineParameters}()},
 \code{\link{plot.HTPSpline}()}
 }
 \concept{functions for fitting splines}

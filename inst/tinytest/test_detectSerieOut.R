@@ -1,7 +1,5 @@
 ### Test detectSingleOut.
 
-### Test fitSpline
-
 Sys.setlocale("LC_COLLATE", "C")
 
 ## Read test data from .csv
@@ -165,12 +163,38 @@ serieOut3 <- detectSerieOut(trait = "t1_corr", corrDat = corr,
                             thrSlope = 0)
 expect_equivalent(serieOut3, data.frame())
 
-## Check that detecting outliers functions correctly for models with geno.deco
+## Check that detecting outliers functions correctly for models with geno.decomp
 expect_silent(serieOutGD <-
                 detectSerieOut(trait = "t1_corr", corrDat = corrGD,
                                predDat = predDatGD, coefDat = coefDatGD,
                                genotypes = "check1", geno.decomp = "geno.decomp"))
-expect_equal(dim(serieOutGD), c(6, 5))
+expect_equal(dim(serieOutGD), c(7, 5))
+
+## Check detectSerieOut functions correctly when plotIds are numeric-like.
+
+corrNw <- corr
+plotIds <- unique(corrNw$plotId)
+corrNw[["plotId"]] <- as.factor(match(x = corrNw[["plotId"]], table = plotIds))
+predDatNw <- predDat
+predDatNw[["plotId"]] <- as.character(match(x = predDatNw[["plotId"]], table = plotIds))
+coefDatNw <- coefDat
+coefDatNw[["plotId"]] <- as.character(match(x = coefDatNw[["plotId"]], table = plotIds))
+
+expect_silent(serieOut4 <- detectSerieOut(trait = "t1_corr", corrDat = corrNw,
+                                          predDat = predDatNw,
+                                          coefDat = coefDatNw,
+                                          genotypes = "check1"))
+
+## Variables in cormats and slopemats should be converted to factors for plotting.
+expect_inherits(attr(serieOut4, which = "cormats")[[1]][["Var1"]],
+                "factor")
+expect_inherits(attr(serieOut4, which = "cormats")[[1]][["Var2"]],
+                "factor")
+
+expect_inherits(attr(serieOut4, which = "slopemats")[[1]][["Var1"]],
+                "factor")
+expect_inherits(attr(serieOut4, which = "slopemats")[[1]][["Var2"]],
+                "factor")
 
 ### Check plotting of detectSerieOut results.
 
@@ -196,6 +220,12 @@ expect_silent(plot(serieOut1, genotypes = "check1", title = "bla"))
 expect_error(plot(serieOutGD, genotypes = "check1", geno.decomp = "2"),
              "All selected geno.decomp levels should be in the data")
 expect_silent(plot(serieOutGD, genotypes = "check1", geno.decomp = "1"))
+
+## Check that option reason functions correctly.
+expect_error(plot(serieOut1, reason = "tst"),
+             'one of "mean corr", "angle", "slope"')
+expect_silent(plot(serieOut1, reason = "slope"))
+expect_silent(plot(serieOut1, reason = c("slope", "angle")))
 
 ### Check removal of outliers detected by detectSerieOut
 
@@ -234,4 +264,19 @@ expect_true(all(is.na(coefOut3[coefOut3[["plotId"]] == "c12r1",
 expect_true(all(is.na(predOut3[predOut3[["plotId"]] == "c12r1",
                                c("pred.value", "deriv", "deriv2")])))
 expect_true(all(is.na(modOut3[modOut3[["plotId"]] == "c12r1", "t1_corr"])))
+
+## Check the option reason works correctly.
+expect_error(removeSerieOut(dat = corr, serieOut = serieOut1, reason = "tst"),
+             'one of "mean corr", "angle", "slope"')
+expect_error(removeSerieOut(dat = corr,
+                            serieOut = serieOut1[, colnames(serieOut1) != "reason"],
+                            reason = "slope"),
+             "serieOut should contain a column reason")
+corrOut4 <- removeSerieOut(dat = corr, serieOut = serieOut1,
+                           reason = "slope")
+expect_true(all(is.na(corrOut4[corrOut4[["plotId"]] == "c12r1", "t1_corr"])))
+expect_false(all(is.na(corrOut4[corrOut4[["plotId"]] == "c12r2", "t1_corr"])))
+
+
+
 
