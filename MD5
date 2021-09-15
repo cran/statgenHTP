@@ -1,6 +1,6 @@
-7f42895d1aafefbbc822e733bf96508e *DESCRIPTION
+c470542efd933e5ed2e04196b0a5015f *DESCRIPTION
 4d50b0ebf2aafd52d140de6d90afaa81 *NAMESPACE
-77a512c9400eb69886169a41a00faa6e *NEWS.md
+626cc91ab91e47321dd96b004269ae33 *NEWS.md
 51f511c81ecef8de28dd608ab0b24ed3 *R/correctSpatial.R
 b3e7fbffa804700948c48476293cacad *R/createFitMod.R
 989e97b26fea1f1a0b16050d4bab989c *R/createTimePoints.R
@@ -19,7 +19,7 @@ bd88a2054c1e17dc01df073dec379b9d *R/statgenHTP.R
 ee2793e1efa2450267f2a1ea84075b82 *R/sysdata.rda
 8ca05eebf92beb732618aecca0e8f878 *R/utils.R
 14004ec301a5ff47d0470650d7ad22a5 *README.md
-0fd3bfe56bf227ffb721cdd4a84fd55a *build/partial.rdb
+eecea4b78608d282f0ae4566ceb941ab *build/partial.rdb
 17a7de02aeafe4874f1b596bf8598a7b *build/vignette.rds
 9868f6b79cbc00ecebe4116ff55edd6b *data/PhenoarchDat1.rda
 98136e31a5c529a5fb110f3d2c45aa57 *data/PhenovatorDat1.rda
@@ -30,7 +30,7 @@ ee2793e1efa2450267f2a1ea84075b82 *R/sysdata.rda
 555f38b3ff315b24e69990faee989420 *data/spatPredArch.rda
 a538e36f6c9da604241b97267a8aa985 *inst/doc/Overview_HTP.R
 7ac1d2820ea10d1ce8402e18aefa7b50 *inst/doc/Overview_HTP.Rmd
-52baee4d0b20a393244d32b7e2931690 *inst/doc/Overview_HTP.html
+cdfe2c39d0bd28b19aa5428a48f011f6 *inst/doc/Overview_HTP.html
 4b8b71d975635a8a7df7a8bc75668727 *inst/tinytest/coefDat
 fbc6571371e592d4654ab0e4a42f8d50 *inst/tinytest/corr1Comp
 5ae9f353079d5f926d22a8cce7bd10b0 *inst/tinytest/corr2Comp
@@ -83,7 +83,7 @@ bc6890aff7f287adf2d69d6555f2294f *inst/tinytest/test_getCorrected.R
 37a6a657d339b7e817e72f7f57b5ab75 *inst/tinytest/test_getHerit.R
 19558f99145cfade95aa0a2c2ab65cbc *inst/tinytest/test_getVar.R
 77c9d1df48306282ca1d8cb164a77971 *inst/tinytest/test_summaries.R
-d454a44aa07a77171c60ece61cc595ca *inst/tinytest/test_utils.R
+66a94cc50bd1f73ee74ae05fc9c49529 *inst/tinytest/test_utils.R
 e2eacbef9bd2c69bb4c456376deb5b21 *inst/tinytest/var1Comp
 4f144b7f02e9063dc56cfacf6f6fbcc8 *inst/tinytest/var2Comp
 3594c165cdba14ecb46956fc84d9c245 *inst/tinytest/var3Comp
