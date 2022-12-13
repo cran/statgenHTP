@@ -7,7 +7,7 @@
 [![CRAN RStudio mirror
 downloads](https://cranlogs.r-pkg.org/badges/statgenHTP)](https://www.r-pkg.org/pkg/statgenHTP)
 [![R-CMD-check](https://github.com/Biometris/statgenHTP/workflows/R-CMD-check/badge.svg)](https://github.com/Biometris/statgenHTP/actions?workflow=R-CMD-check)
-[![codecov](https://codecov.io/gh/Biometris/statgenHTP/branch/master/graph/badge.svg)](https://codecov.io/gh/Biometris/statgenHTP)
+[![codecov](https://codecov.io/gh/Biometris/statgenHTP/branch/master/graph/badge.svg)](https://app.codecov.io/gh/Biometris/statgenHTP)
 
 **statgenHTP** is developed as an easy-to-use package for analyzing data
 coming from high throughput phenotyping (HTP) platform experiments. The
@@ -18,14 +18,14 @@ automated analyses of HTP data.
 
 ## Installation
 
--   Install from CRAN:
+- Install from CRAN:
 
 ``` r
 install.packages("statgenHTP")
 ```
 
--   Install latest development version from GitHub (requires
-    [remotes](https://github.com/r-lib/remotes) package):
+- Install latest development version from GitHub (requires
+  [remotes](https://github.com/r-lib/remotes) package):
 
 ``` r
 remotes::install_github("Biometris/statgenHTP", ref = "develop", dependencies = TRUE)

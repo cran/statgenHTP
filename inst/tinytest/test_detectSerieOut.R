@@ -1,4 +1,4 @@
-### Test detectSingleOut.
+### Test detectSerieOut.
 
 Sys.setlocale("LC_COLLATE", "C")
 
@@ -153,7 +153,7 @@ expect_error(detectSerieOut(trait = "t1_corr", corrDat = corrGD,
 # Set all three to extreme values should result in either 0 or many outliers.
 serieOut2 <- detectSerieOut(trait = "t1_corr", corrDat = corr,
                             predDat = predDat, coefDat = coefDat,
-                            genotypes = "check1", thrCor = 0, thrPca = 0,
+                            genotypes = "check1", thrCor = 1, thrPca = 0,
                             thrSlope = 1)
 expect_equal(dim(serieOut2), c(9, 4))
 
@@ -272,11 +272,9 @@ expect_error(removeSerieOut(dat = corr,
                             serieOut = serieOut1[, colnames(serieOut1) != "reason"],
                             reason = "slope"),
              "serieOut should contain a column reason")
-corrOut4 <- removeSerieOut(dat = corr, serieOut = serieOut1,
-                           reason = "slope")
+corrOut4 <- removeSerieOut(dat = corr, serieOut = serieOut1, reason = "angle")
 expect_true(all(is.na(corrOut4[corrOut4[["plotId"]] == "c12r1", "t1_corr"])))
-expect_false(all(is.na(corrOut4[corrOut4[["plotId"]] == "c12r2", "t1_corr"])))
 
-
-
+corrOut5 <- removeSerieOut(dat = corr, serieOut = serieOut1, reason = "slope")
+expect_true(all(is.na(corrOut5[corrOut5[["plotId"]] == "c12r1", "t1_corr"])))
 

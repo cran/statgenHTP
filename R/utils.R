@@ -205,15 +205,9 @@ xyFacetPlot <- function(baseDat,
                         yLab = "Trait",
                         output = TRUE,
                         plotLine = FALSE) {
-  ## Compute the number of breaks for the time scale.
-  ## If there are less than 3 time points use the number of time points.
-  ## Otherwise use 3.
-  nBr <- min(length(unique(baseDat[[xVal]])), 3)
   ## Create plot.
   p <- ggplot2::ggplot(baseDat, ggplot2::aes_string(x = xVal, y = yVal)) +
     ## Format the time scale to Month + day.
-    ggplot2::scale_x_datetime(breaks = prettier(n = nBr),
-                              labels = scales::date_format("%B %d")) +
     ggplot2::theme(panel.background = ggplot2::element_blank(),
                    panel.spacing = ggplot2::unit(0, "cm"),
                    panel.border = ggplot2::element_rect(color = "black",
@@ -221,8 +215,19 @@ xyFacetPlot <- function(baseDat,
                    strip.background = ggplot2::element_rect(color = "black",
                                                             fill = "bisque"),
                    plot.title = ggplot2::element_text(hjust = 0.5),
-                   axis.text.x = ggplot2::element_text(angle = 25, vjust = 1, hjust = 1)) +
+                   axis.text.x = ggplot2::element_text(angle = 25, vjust = 1,
+                                                       hjust = 1)) +
     ggplot2::labs(title = title, x = xLab, y = yLab)
+  nTp <- length(unique(baseDat[["timePoint"]]))
+  if (nTp < 5) {
+    p <- p + ggplot2::scale_x_datetime(breaks = unique(baseDat[["timePoint"]]),
+                                       labels = scales::date_format("%B %d"))
+  } else {
+    ## Format the time scale to Month + day.
+    p <- p + ggplot2::scale_x_datetime(breaks = prettier(n = 3),
+                                       labels = scales::date_format("%B %d"))
+  }
+
   if (!plotLine || length(unique(baseDat[[xVal]])) == 1) {
     ## Multiple time points in data. Display a line.
     p <- p + ggplot2::geom_point(ggplot2::aes_string(group = groupVal,
@@ -330,6 +335,28 @@ chkTimePoints <- function(x,
     stop("timePoints should be a character or numeric vector.\n")
   }
   return(timePoints)
+}
+
+#' Helper function for checking structure of smooth arguments to
+#' fitSplineHDM.
+#'
+#' @noRd
+#' @keywords internal
+chkSmooth <- function(x) {
+  xName <- deparse(substitute(x))
+  if (!is.list(x) || length(x) != 3 ||
+      !(setequal(names(x), c("nseg", "bdeg", "pord")))) {
+    stop(xName, " should be a named list of length 3.\n")
+  }
+  if (!is.numeric(x$nseg) || length(x$nseg) > 1 || x$nseg < 1) {
+    stop("nseg in ", xName, " should be a positive numerical value.\n")
+  }
+  if (!is.numeric(x$bdeg) || length(x$bdeg) > 1 || x$bdeg < 1) {
+    stop("bdeg in ", xName, " should be a positive numerical value.\n")
+  }
+  if (!is.numeric(x$pord) || length(x$pord) > 1 || x$pord < 1) {
+    stop("pord in ", xName, " should be a positive numerical value.\n")
+  }
 }
 
 #' Helper function for minimal plot theme.
@@ -565,3 +592,17 @@ countValidPlot <- function(TP,
   })
 }
 
+#' @noRd
+#' @keywords internal
+bdiag_m <- function(lmat) {
+  ## Copyright (C) 2016 Martin Maechler, ETH Zurich
+  N <- length(lmat)
+  k <- dim(lmat[[1]])[1]
+  M <- as.integer(N * k)
+  ## result: an   M x M  matrix
+  new("dgCMatrix", Dim = c(M, M),
+      ## 'i :' maybe there's a faster way (w/o matrix indexing), but elegant?
+      i = as.vector(matrix(0L:(M - 1L), nrow = k)[, rep(seq_len(N), each = k)]),
+      p = k * 0L:M,
+      x = as.double(unlist(lmat, recursive = FALSE, use.names = FALSE)))
+}

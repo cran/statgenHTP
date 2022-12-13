@@ -5,19 +5,21 @@
 \title{Extract estimates from fitted splines.}
 \usage{
 estimateSplineParameters(
-  HTPSpline,
+  x,
   estimate = c("predictions", "derivatives", "derivatives2"),
   what = c("min", "max", "mean", "AUC", "p"),
   AUCScale = c("min", "hour", "day"),
   timeMin = NULL,
   timeMax = NULL,
   genotypes = NULL,
-  plotIds = NULL
+  plotIds = NULL,
+  fitLevel = c("geno", "plot", "genoDev", "plotDev")
 )
 }
 \arguments{
-\item{HTPSpline}{An object of class HTPSpline, the output of the
-\code{\link{fitSpline}} function.}
+\item{x}{An object of class HTPSpline, the output of the
+\code{\link{fitSpline}} function, or class splineHDm, the output of the
+\code{\link{fitSplineHDM}} function}
 
 \item{estimate}{The P-Spline component for which the estimate should be
 extracted, the predictions, the first derivatives or the second derivatives
@@ -47,9 +49,13 @@ for all genotypes for which splines where fitted.}
 \item{plotIds}{A character vector indicating the plotIds for which
 estimates should be extracted. If \code{NULL}, estimates will be extracted
 for all plotIds for which splines where fitted.}
+
+\item{fitLevel}{A character string indicating at which level of the data
+the parameter estimates should be made. Only used for splines fitted using
+\code{\link{fitSplineHDM}}.}
 }
 \value{
-An object of class HTPSplineEst, a data.frame containing the
+An object of class splineEst, a data.frame containing the
 estimated parameters.
 }
 \description{
@@ -57,6 +63,8 @@ Function for extracting parameter estimates from fitted splines on a
 specified interval.
 }
 \examples{
+### Estimate parameters for fitted P-splines.
+
 ## Run the function to fit P-splines on a subset of genotypes.
 subGeno <- c("G160", "G151")
 fit.spline <- fitSpline(inDat = spatCorrectedVator,
@@ -65,7 +73,7 @@ fit.spline <- fitSpline(inDat = spatCorrectedVator,
                         knots = 50)
 
 ## Estimate the maximum value of the predictions at the beginning of the time course.
-paramVator <- estimateSplineParameters(HTPSpline = fit.spline,
+paramVator <- estimateSplineParameters(x = fit.spline,
                                        estimate = "predictions",
                                        what = "max",
                                        timeMin = 1527784620,
@@ -73,16 +81,68 @@ paramVator <- estimateSplineParameters(HTPSpline = fit.spline,
                                        genotypes = subGeno)
 head(paramVator)
 
+## Create a boxplot of the estimates.
+plot(paramVator, plotType = "box")
+
 ## Estimate the minimum and maximum value of the predictions.
-paramVator2 <- estimateSplineParameters(HTPSpline = fit.spline,
+paramVator2 <- estimateSplineParameters(x = fit.spline,
                                         estimate = "predictions",
                                         what = c("min", "max"),
                                         genotypes = subGeno)
 head(paramVator2)
 
+
+### Estimate parameters for fitted HDM-splines.
+
+## The data from the Phenovator platform have been corrected for spatial
+## trends and outliers for single observations have been removed.
+
+## We need to specify the genotype-by-treatment interaction.
+## Treatment: water regime (WW, WD).
+spatCorrectedArch[["treat"]] <- substr(spatCorrectedArch[["geno.decomp"]],
+                                      start = 1, stop = 2)
+spatCorrectedArch[["genoTreat"]] <-
+  interaction(spatCorrectedArch[["genotype"]],
+             spatCorrectedArch[["treat"]], sep = "_")
+
+## Fit P-Splines Hierarchical Curve Data Model for selection of genotypes.
+fit.psHDM  <- fitSplineHDM(inDat = spatCorrectedArch,
+                          trait = "LeafArea_corr",
+                          genotypes = c("GenoA14_WD", "GenoA51_WD",
+                                       "GenoB11_WW", "GenoB02_WD",
+                                       "GenoB02_WW"),
+                          time = "timeNumber",
+                          pop = "geno.decomp",
+                          genotype = "genoTreat",
+                          plotId = "plotId",
+                          difVar = list(geno = FALSE, plot = FALSE),
+                          smoothPop = list(nseg = 4, bdeg = 3, pord = 2),
+                          smoothGeno = list(nseg = 4, bdeg = 3, pord = 2),
+                          smoothPlot = list(nseg = 4, bdeg = 3, pord = 2),
+                          weights = "wt",
+                          trace = FALSE)
+
+## Estimate minimum, maximum, and mean for predictions at the genotype level.
+paramArch <- estimateSplineParameters(x = fit.psHDM,
+                                     what = c("min", "max", "mean"),
+                                     fitLevel = "geno",
+                                     estimate = "predictions",
+                                     timeMax = 28)
+head(paramArch)
+
+## Create a boxplot of the estimates.
+plot(paramArch, plotType = "box")
+
+## Estimate area under the curve for predictions at the plot level.
+paramArch2 <- estimateSplineParameters(x = fit.psHDM,
+                                      what = "AUC",
+                                      fitLevel = "plot",
+                                      estimate = "predictions")
+head(paramArch2)
+
 }
 \seealso{
 Other functions for spline parameter estimation: 
-\code{\link{plot.HTPSplineEst}()}
+\code{\link{plot.splineEst}()}
 }
 \concept{functions for spline parameter estimation}

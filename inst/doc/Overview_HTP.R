@@ -108,7 +108,7 @@ modPhenoSp <- fitModels(TP = phenoTPOut,
                         timePoints = c(1, 33, 36, 54, 73))
 summary(modPhenoSp)
 
-## ----plotSpatPerc,  fig.height=4, fig.width=7.3, message=FALSE, eval=TRUE-----
+## ----plotSpatPerc,  fig.height=4, fig.width=7.3, message=FALSE----------------
 plot(modPhenoSp,
      timePoints = 36,
      plotType = "spatial",
@@ -124,7 +124,7 @@ plot(modPhenoSp,
      plotType = "rawPred",
      genotypes = c("G007", "G058")) 
 
-## ----plotSpCorr, message=FALSE, fig.height=2, fig.width=6, fig.align = 'center', eval=TRUE----
+## ----plotSpCorr, message=FALSE, fig.height=2, fig.width=6, fig.align = 'center'----
 plot(modPhenoSp, 
      plotType = "corrPred",
      genotypes = c("G007", "G058"))
@@ -149,9 +149,9 @@ plot(modPhenoSp,
 genoPredSp <- getGenoPred(modPhenoSp)
 
 ## ----getPred, echo=FALSE, message=FALSE---------------------------------------
-knitr::kable(head(genoPredSp$genoPred), align = c('c','c','c','c','c'), padding = 0)
+knitr::kable(head(genoPredSp$genoPred), align = "c", padding = 0)
 
-## ----fitSplineVator, echo=TRUE, message=FALSE, warning=FALSE, eval=TRUE-------
+## ----fitSplineVator, message=FALSE, warning=FALSE-----------------------------
 data(spatCorrectedVator)  
 # Fit P-splines using on a subset of genotypes.
 subGenoVator <- c("G160", "G151")
@@ -166,11 +166,11 @@ fit.spline <- fitSpline(inDat = spatCorrectedVator,
 predDat <- fit.spline$predDat
 coefDat <- fit.spline$coefDat
 
-## ----plotSplGeno,  fig.height=4, fig.width=7, message=FALSE, eval=TRUE--------
+## ----plotSplGeno,  fig.height=4, fig.width=7, message=FALSE-------------------
 plot(fit.spline,
      genotypes = "G160")
 
-## ----OutVator, echo=TRUE, message=FALSE, warning=FALSE, eval=TRUE-------------
+## ----OutVator, message=FALSE, warning=FALSE-----------------------------------
 outVator <- detectSerieOut(corrDat = spatCorrectedVator,
                            predDat = predDat,
                            coefDat = coefDat,
@@ -179,28 +179,79 @@ outVator <- detectSerieOut(corrDat = spatCorrectedVator,
                            thrCor = 0.9,
                            thrPca = 30)
 
-## ----headOutPoint, echo=FALSE, message=FALSE, eval=TRUE-----------------------
-knitr::kable(head(outVator), align=c('c','c'), booktabs = TRUE, row.names=F)
+## ----headOutPoint, echo=FALSE, message=FALSE----------------------------------
+knitr::kable(head(outVator), align = "c", booktabs = TRUE, row.names = FALSE)
 
-## ----plotOutVator,  fig.height=6, fig.width=6, echo=TRUE, message=FALSE, warning=FALSE----
+## ----plotOutVator,  fig.height=6, fig.width=6, message=FALSE, warning=FALSE----
 plot(outVator, genotypes = "G151")
 
 ## ----rmSerieOutVator----------------------------------------------------------
 fit.splineOut <- removeSerieOut(fitSpline = fit.spline,
                                 serieOut = outVator)
 
-## ----paramVator, fig.height=2, fig.width=4, echo=TRUE, message=FALSE, warning=FALSE, eval=TRUE----
-subGenoVator <- c("G160", "G151")
+## ----summaryData, message=FALSE, warning=FALSE, eval=TRUE, fig.align='center'----
+data(spatCorrectedVator)
+spatCorrectedVator[["pop"]] <- as.factor(rep("Pop1", nrow(spatCorrectedVator)))
+str(droplevels(spatCorrectedVator[spatCorrectedVator$genotype %in% subGenoVator,]))
+
+## ----fitPsHDMVator, message=FALSE, warning=FALSE------------------------------
+## Fit P-spline HDM.
+fit.psHDM  <- fitSplineHDM(inDat = spatCorrectedVator,
+                           genotypes = subGenoVator,
+                           trait = "EffpsII_corr",
+                           useTimeNumber = TRUE,
+                           timeNumber = "timeNumHour",                           
+                           pop = "pop",
+                           genotype = "genotype",
+                           plotId = "plotId",
+                           weights = "wt",
+                           difVar = list(geno = FALSE, plot = FALSE),
+                           smoothPop = list(nseg = 20, bdeg = 3, pord = 2),
+                           smoothGeno = list(nseg = 20, bdeg = 3, pord = 2),
+                           smoothPlot = list(nseg = 20, bdeg = 3, pord = 2),
+                           trace = FALSE)
+
+## ----predictSplineHDMVatorNum, message=FALSE, warning=FALSE-------------------
+## Predict P-spline HDM.
+pred.psHDM <- predict(object = fit.psHDM,
+                      newtimes = seq(min(fit.psHDM$time[["timeNumber"]]),
+                                     max(fit.psHDM$time[["timeNumber"]]),
+                                     length.out = 100),
+                      pred = list(pop = TRUE, geno = TRUE, plot = TRUE),
+                      se = list(pop = TRUE, geno = TRUE, plot = FALSE),
+                      trace = FALSE)
+
+## ----plotPredPopVator, fig.height=4, fig.width=5, message=FALSE, warning=FALSE, fig.align='center'----
+plot(pred.psHDM, plotType = "popTra", themeSizeHDM = 10)
+
+## ----plotPredGenoTraVator, fig.height=4, fig.width=5, message=FALSE, warning=FALSE, fig.align='center'----
+plot(pred.psHDM, plotType = "popGenoTra", themeSizeHDM = 10)
+
+## ----plotPredGenoDevVator, fig.height=4, fig.width=5, message=FALSE, warning=FALSE, fig.align='center'----
+plot(pred.psHDM, plotType = "genoDev", themeSizeHDM = 10)
+
+## ----plotPredPlotVator, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, fig.align='center'----
+plot(pred.psHDM, 
+     plotType = "genoPlotTra", 
+     themeSizeHDM = 10)
+
+## ----paramVator, fig.height=2, fig.width=4, message=FALSE, warning=FALSE, fig.align='center'----
 paramVator1 <- 
-  estimateSplineParameters(HTPSpline = fit.splineOut,
+  estimateSplineParameters(x = fit.splineOut,
                            estimate = "predictions",
                            what = "AUC",
                            timeMin = 330,
                            timeMax = 432,
                            genotypes = subGenoVator)
 
-ggplot(paramVator1, aes(x = genotype, y = AUC_predictions)) + 
-  geom_boxplot(na.rm = TRUE) +
-  ylab("AUC of EffPsII") +
-  theme_classic()
+plot(paramVator1, plotType = "box")
+
+## ----paramPhenoGenoPred, fig.height=2, fig.width=4, message=FALSE, warning=FALSE, fig.align='center'----
+paramVator2 <-
+  estimateSplineParameters(x = pred.psHDM,
+                           what = "min",
+                           fitLevel = "plot",
+                           estimate = "predictions")
+
+plot(paramVator2, plotType = "box")
 
