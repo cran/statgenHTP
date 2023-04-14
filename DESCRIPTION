@@ -1,7 +1,7 @@
 Package: statgenHTP
 Title: High Throughput Phenotyping (HTP) Data Analysis
-Version: 1.0.6
-Date: 2022-12-07
+Version: 1.0.6.1
+Date: 2023-04-13
 Authors@R: 
     c(person(given = "Emilie J",
              family = "Millet",
@@ -47,7 +47,8 @@ LazyData: true
 Depends: R (>= 3.6)
 Imports: animation, factoextra, ggforce, ggplot2 (>= 3.3.0),
         ggnewscale, grid, gridExtra, Matrix, methods, LMMsolver,
-        locfit, lubridate, reshape2, scales, spam, SpATS (>= 1.0-13)
+        locfit, lubridate, rlang, reshape2, scales, spam, SpATS (>=
+        1.0-13)
 Suggests: asreml (>= 4.0), knitr, rmarkdown, tinytest (>= 1.2.4)
 RoxygenNote: 7.2.3
 VignetteBuilder: knitr
@@ -55,7 +56,7 @@ URL: https://biometris.github.io/statgenHTP/index.html,
         https://github.com/Biometris/statgenHTP/
 BugReports: https://github.com/Biometris/statgenHTP/issues
 NeedsCompilation: no
-Packaged: 2022-12-13 15:27:11 UTC; rossu027
+Packaged: 2023-04-14 07:22:51 UTC; rossu027
 Author: Emilie J Millet [aut] (<https://orcid.org/0000-0002-2913-4892>),
   Maria Xose Rodriguez Alvarez [aut]
     (<https://orcid.org/0000-0002-1329-9238>),
@@ -69,4 +70,4 @@ Author: Emilie J Millet [aut] (<https://orcid.org/0000-0002-2913-4892>),
   Martin Boer [aut]
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2022-12-13 16:00:02 UTC
+Date/Publication: 2023-04-14 08:20:02 UTC
