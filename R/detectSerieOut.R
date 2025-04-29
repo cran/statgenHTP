@@ -29,7 +29,7 @@
 #' @param thrSlope A numerical value used as threshold for determining outliers
 #' based on slopes.
 #'
-#' @return An object of class \code{serieOut}, a \code{data.frame} with outlying
+#' @returns An object of class \code{serieOut}, a \code{data.frame} with outlying
 #' series of observations.
 #'
 #' @examples
@@ -458,7 +458,7 @@ detectSerieOut <- function(corrDat,
 #' @param timeNumber If \code{useTimeNumber = TRUE}, a character vector
 #' indicating the column containing the numerical time to use.
 #'
-#' @return A list of ggplot objects is invisibly returned.
+#' @returns A list of ggplot objects is invisibly returned.
 #'
 #' @examples
 #' \donttest{
@@ -694,7 +694,7 @@ plot.serieOut <- function(x,
 #' output of \code{detectSerieOut} as input for \code{serieOut} this defaults
 #' to the trait used for when detecting the outliers.
 #'
-#' @return Depending on the input either a \code{data.frame} or an object of
+#' @returns Depending on the input either a \code{data.frame} or an object of
 #' class \code{HTPSpline} for which the outliers specified in \code{serieOut}
 #' are replaced by NA.
 #'
@@ -778,6 +778,12 @@ removeSerieOut <- function(dat = NULL,
         serieOut <- serieOut[serieOut[["reason"]] %in% reason, ]
       }
     if (!is.null(dat)) {
+      ## Check if all traits are present in dat.
+      traitMiss <- traits[!traits %in% colnames(dat)]
+      if (length(traitMiss) > 0) {
+        stop("All traits should be in dat. The following traits are missing:\n",
+             paste(traitMiss, collapse = ", "))
+      }
       ## Remove plots that are in serieOut.
       for (trait in traits) {
         dat[dat[["plotId"]] %in% serieOut[["plotId"]], trait] <- NA

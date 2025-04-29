@@ -115,9 +115,9 @@ plot(modPhenoSp,
      spaTrend = "percentage")
 
 ## ----plotTimeLapse,  fig.height=5, fig.width=6, message=FALSE, eval=FALSE-----
-#  plot(modPhenoSp,
-#       plotType = "timeLapse",
-#       outFile = "TimeLapse_modPhenoSp.gif")
+# plot(modPhenoSp,
+#      plotType = "timeLapse",
+#      outFile = "TimeLapse_modPhenoSp.gif")
 
 ## ----plotSpPred, message=FALSE, fig.height=2, fig.width=6, fig.align = 'center'----
 plot(modPhenoSp, 
@@ -236,13 +236,12 @@ plot(pred.psHDM,
      themeSizeHDM = 10)
 
 ## ----paramVator, fig.height=2, fig.width=4, message=FALSE, warning=FALSE, fig.align='center'----
-paramVator1 <- 
-  estimateSplineParameters(x = fit.splineOut,
-                           estimate = "predictions",
-                           what = "AUC",
-                           timeMin = 330,
-                           timeMax = 432,
-                           genotypes = subGenoVator)
+paramVator1 <- estimateSplineParameters(x = fit.splineOut,
+                                        estimate = "predictions",
+                                        what = "AUC",
+                                        timeMin = 330,
+                                        timeMax = 432,
+                                        genotypes = subGenoVator)
 
 plot(paramVator1, plotType = "box")
 
