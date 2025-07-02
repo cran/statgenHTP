@@ -1,7 +1,7 @@
 Package: statgenHTP
 Title: High Throughput Phenotyping (HTP) Data Analysis
-Version: 1.0.8
-Date: 2025-04-28
+Version: 1.0.9
+Date: 2025-07-02
 Authors@R: 
     c(person(given = "Emilie J",
              family = "Millet",
@@ -37,7 +37,7 @@ Authors@R:
 Description: Phenotypic analysis of data coming from high throughput 
     phenotyping (HTP) platforms, including different types of outlier detection,
     spatial analysis, and parameter estimation. The package is being developed
-    within the EPPN2020 project (<https://eppn2020.plant-phenotyping.eu/>).
+    within the EPPN2020 project (<https://cordis.europa.eu/project/id/731013>).
     Some functions have been created to be used in conjunction with the R 
     package 'asreml' for the 'ASReml' software, which can be obtained upon 
     purchase from 'VSN' international (<https://vsni.co.uk/software/asreml-r/>).
@@ -45,10 +45,9 @@ License: GPL
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.6)
-Imports: animation, factoextra, ggforce, ggplot2 (>= 3.3.0),
-        ggnewscale, grid, gridExtra, Matrix, methods, LMMsolver,
-        locfit, lubridate, rlang, reshape2, scales, spam, SpATS (>=
-        1.0-13)
+Imports: animation, ggforce, ggplot2 (>= 3.3.0), ggnewscale, grid,
+        gridExtra, Matrix, methods, LMMsolver, locfit, lubridate,
+        rlang, scales, spam, SpATS (>= 1.0-13)
 Suggests: asreml (>= 4.0), knitr, rmarkdown, tinytest (>= 1.2.4)
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
@@ -56,18 +55,18 @@ URL: https://biometris.github.io/statgenHTP/index.html,
         https://github.com/Biometris/statgenHTP/
 BugReports: https://github.com/Biometris/statgenHTP/issues
 NeedsCompilation: no
-Packaged: 2025-04-29 08:27:57 UTC; rossu027
-Author: Emilie J Millet [aut] (<https://orcid.org/0000-0002-2913-4892>),
-  Maria Xose Rodriguez Alvarez [aut]
-    (<https://orcid.org/0000-0002-1329-9238>),
-  Diana Marcela Perez Valencia [aut]
-    (<https://orcid.org/0000-0002-9053-2929>),
+Packaged: 2025-07-02 13:40:17 UTC; rossu027
+Author: Emilie J Millet [aut] (ORCID: <https://orcid.org/0000-0002-2913-4892>),
+  Maria Xose Rodriguez Alvarez [aut] (ORCID:
+    <https://orcid.org/0000-0002-1329-9238>),
+  Diana Marcela Perez Valencia [aut] (ORCID:
+    <https://orcid.org/0000-0002-9053-2929>),
   Isabelle Sanchez [aut],
   Nadine Hilgert [aut],
-  Bart-Jan van Rossum [aut, cre]
-    (<https://orcid.org/0000-0002-8673-2514>),
-  Fred van Eeuwijk [aut] (<https://orcid.org/0000-0003-3672-2921>),
+  Bart-Jan van Rossum [aut, cre] (ORCID:
+    <https://orcid.org/0000-0002-8673-2514>),
+  Fred van Eeuwijk [aut] (ORCID: <https://orcid.org/0000-0003-3672-2921>),
   Martin Boer [aut]
 Maintainer: Bart-Jan van Rossum <bart-jan.vanrossum@wur.nl>
 Repository: CRAN
-Date/Publication: 2025-04-29 10:30:02 UTC
+Date/Publication: 2025-07-02 16:20:02 UTC

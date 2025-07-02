@@ -198,11 +198,15 @@ detectSerieOut <- function(corrDat,
                                 f = coefDat[c("genotype", geno.decomp)],
                                 drop = TRUE),
                       FUN = function(dat) {
-                        plantDat <- reshape2::acast(dat,
-                                                    formula = type ~ plotId,
-                                                    value.var = "obj.coefficients")
-                        ## Remove intercept.
-                        #plantDat <- plantDat[-1, , drop = FALSE]
+                        plantDat <- reshape(dat,
+                                            direction = "wide",
+                                            idvar = "type",
+                                            timevar = "plotId",
+                                            drop = c("genotype", "geno.decomp"))
+                        rownames(plantDat) <- plantDat[["type"]]
+                        plantDat <- as.matrix(plantDat[, -1])
+                        colnames(plantDat) <-
+                          gsub("obj.coefficients.", "", colnames(plantDat))
                         ## Remove plants with only NA.
                         NAplants <- apply(X = plantDat, MARGIN = 2,
                                           FUN = function(plant) {
@@ -320,15 +324,23 @@ detectSerieOut <- function(corrDat,
   })
   ## Convert cormats to format used by ggplot.
   cormats <- lapply(X = cormats, FUN = function(cormat) {
-    ## Set lower part of cormat to NA for plotting.
-    cormat[lower.tri(cormat)] <- NA
-    ## Melt to format used by ggplot.
-    meltedCormat <- reshape2::melt(cormat, na.rm = TRUE)
-    ## Convert Var1 and Var2 to factor needed for plotting.
-    if (!is.factor(meltedCormat[["Var1"]])) {
-      meltedCormat[["Var1"]] <- as.factor(meltedCormat[["Var1"]])
-      meltedCormat[["Var2"]] <- as.factor(meltedCormat[["Var2"]])
-    }
+    cordat <- as.data.frame(cormat)
+    meltedCormat <- reshape(cordat, direction = "long",
+                            varying = colnames(cordat),
+                            times = colnames(cordat), timevar = "Var1",
+                            ids = rownames(cordat), idvar = "Var2",
+                            v.names = "value")
+    rownames(meltedCormat) <- NULL
+    ## Reshape converts variable columns to character.
+    ## This gives problems with plotting, so reconvert them to factor.
+    meltedCormat[["Var1"]] <- factor(meltedCormat[["Var1"]],
+                                     levels = colnames(cordat))
+    meltedCormat[["Var2"]] <- factor(meltedCormat[["Var2"]],
+                                     levels = colnames(cordat))
+    ## Select bottom left triangle for correlations and top for variances.
+    meltedCormat <- meltedCormat[as.numeric(meltedCormat[["Var1"]]) <
+                                   as.numeric(meltedCormat[["Var2"]]),
+                                 c("Var1", "Var2", "value")]
     attr(meltedCormat, which = "thrCor") <- attr(cormat, which = "thrCor")
     return(meltedCormat)
   })
@@ -336,8 +348,7 @@ detectSerieOut <- function(corrDat,
   annotatePlantsPcaAngle <- lapply(X = names(plantPcas), FUN = function(geno) {
     ## Calculate the pairwise difference of coordinates on the 2nd axis and
     ## annotate plant with average diff larger than threshold.
-    plantPcaPlot <- factoextra::fviz_pca_var(plantPcas[[geno]])
-    PcVecs <- as.matrix(plantPcaPlot$data[, 2:3])
+    PcVecs <- t(t(plantPcas[[geno]]$rotation) * plantPcas[[geno]]$sdev)[, 1:2]
     PcAngles <- matrix(nrow = nrow(PcVecs), ncol = nrow(PcVecs),
                        dimnames = list(rownames(PcVecs), rownames(PcVecs)))
     PcAngles[lower.tri(PcAngles)] <-
@@ -386,17 +397,24 @@ detectSerieOut <- function(corrDat,
   })
   ## Convert slopemats to format used by ggplot.
   slopemats <- lapply(X = slopemats, FUN = function(slopemat) {
-    ## Set lower part of cormat to NA for plotting.
-    slopemat[lower.tri(slopemat)] <- NA
-    ## Melt to format used by ggplot.
-    meltedSlopemat <- reshape2::melt(slopemat, na.rm = TRUE)
-    ## Convert Var1 and Var2 to factor needed for plotting.
-    if (!is.factor(meltedSlopemat[["Var1"]])) {
-      meltedSlopemat[["Var1"]] <- as.factor(meltedSlopemat[["Var1"]])
-      meltedSlopemat[["Var2"]] <- as.factor(meltedSlopemat[["Var2"]])
-    }
-    attr(meltedSlopemat, which = "thrSlope") <-
-      attr(slopemat, which = "thrSlope")
+    slopedat <- as.data.frame(slopemat)
+    meltedSlopemat <- reshape(slopedat, direction = "long",
+                              varying = colnames(slopedat),
+                              times = colnames(slopedat), timevar = "Var1",
+                              ids = rownames(slopedat), idvar = "Var2",
+                              v.names = "value")
+    rownames(meltedSlopemat) <- NULL
+    ## Reshape converts variable columns to character.
+    ## This gives problems with plotting, so reconvert them to factor.
+    meltedSlopemat[["Var1"]] <- factor(meltedSlopemat[["Var1"]],
+                                       levels = colnames(slopedat))
+    meltedSlopemat[["Var2"]] <- factor(meltedSlopemat[["Var2"]],
+                                       levels = colnames(slopedat))
+    ## Select bottom left triangle for correlations and top for variances.
+    meltedSlopemat <- meltedSlopemat[as.numeric(meltedSlopemat[["Var1"]]) <
+                                       as.numeric(meltedSlopemat[["Var2"]]),
+                                     c("Var1", "Var2", "value")]
+    attr(meltedSlopemat, which = "thrSlope") <- attr(slopemat, which = "thrSlope")
     return(meltedSlopemat)
   })
   ## Create full data.frame with annotated plants.
@@ -646,7 +664,38 @@ plot.serieOut <- function(x,
     }
     ## PCA biplot.
     if ("angle" %in% reason) {
-      pcaplot <- factoextra::fviz_pca_var(plantPcas[[genotype]])
+      pcaDat <- plantPcas[[genotype]]
+      importance <- round(100 * summary(pcaDat)$importance[2, ], 1)
+      pcVecs <- as.data.frame(t(t(pcaDat$rotation) * pcaDat$sdev))[, 1:2]
+      pcVecs[["plotId"]] <- rownames(pcaDat$rotation)
+      pcaplot <- ggplot2::ggplot(data = pcVecs) +
+        ggplot2::geom_segment(ggplot2::aes(x = 0, y = 0,
+                                           xend = .data[["PC1"]],
+                                           yend = .data[["PC2"]]),
+                              arrow = ggplot2::arrow(length = ggplot2::unit(0.2, "cm")),
+                              show.legend = FALSE) +
+        ## Needed for a square plot output.
+        ggplot2::coord_equal(xlim = c(-1, 1), ylim = c(-1, 1),
+                             clip = "off") +
+        ## Add reference axes.
+        ggplot2::geom_vline(ggplot2::aes(xintercept = 0),
+                            linetype = "dashed", show.legend = FALSE) +
+        ggplot2::geom_hline(ggplot2::aes(yintercept = 0),
+                            linetype = "dashed", show.legend = FALSE) +
+        ggplot2::annotate("path",
+                          x = cos(seq(0, 2 * pi, length.out = 100)),
+                          y = sin(seq(0, 2 * pi, length.out = 100)),
+                          color = "grey75") +
+        ggplot2::geom_text(ggplot2::aes(x = .data[["PC1"]],
+                                        y = .data[["PC2"]],
+                                        label = .data[["plotId"]]),
+                           show.legend = FALSE, vjust = 0) +
+        ## Add labeling.
+        ggplot2::labs(x = paste0("Dim1 (", importance[1], "%)"),
+                      y = paste0("Dim2 (", importance[2], "%)"),
+                      title = "Variables - PCA") +
+        ggplot2::theme(panel.grid = ggplot2::element_line(color = "grey90"),
+                       panel.background = ggplot2::element_rect(fill = "white"))
     } else {
       pcaplot <- grid::nullGrob()
     }
