@@ -1,6 +1,6 @@
-e036338dc781780dda79eef2170384ba *DESCRIPTION
+ae21a273d3a1812fc9810c5153f90a28 *DESCRIPTION
 8b74f7d08d8c3dfdfb00309fc5914336 *NAMESPACE
-9caa83587af2ef2f0eabb6fa59d41582 *NEWS.md
+2459fa7e67e5d96b9e0ac225aab8de83 *NEWS.md
 36f1858cbcdd6ee73b32ade9dc256184 *R/correctSpatial.R
 30ef0ef2846d31be9a2ed963c8d28028 *R/createFitMod.R
 4b6e697849ce99f5cdd4f36a4093a024 *R/createTimePoints.R
@@ -24,8 +24,8 @@ a7a10ce1ea269f8a8aebf625c4e22399 *R/statgenHTP.R
 ee2793e1efa2450267f2a1ea84075b82 *R/sysdata.rda
 e5a78754f92779edd1c41825e76be480 *R/utils.R
 8bf56455a6573d877c6139f0cd5ab393 *README.md
-9d40159f50a5fc9949cbfe95a2884126 *build/partial.rdb
-664faef7e5f29916ed5d2e157486ec68 *build/vignette.rds
+cb3b20077bebc5da31fc1b46c657c0ff *build/partial.rdb
+0629d971df7667894d1a6e8f39793fcf *build/vignette.rds
 9868f6b79cbc00ecebe4116ff55edd6b *data/PhenoarchDat1.rda
 98136e31a5c529a5fb110f3d2c45aa57 *data/PhenovatorDat1.rda
 046bced5160eff099fbef07dfc36a346 *data/RootDat1.rda
@@ -35,7 +35,7 @@ e5a78754f92779edd1c41825e76be480 *R/utils.R
 555f38b3ff315b24e69990faee989420 *data/spatPredArch.rda
 dfe20df95f32828b326209d1d695c360 *inst/doc/Overview_HTP.R
 e81e7eb81abd9b04e3072d76d1e87c7f *inst/doc/Overview_HTP.Rmd
-62ac1e04214d31ee717467be94c264ed *inst/doc/Overview_HTP.html
+5f9632b9c788485a071dd8f192fea921 *inst/doc/Overview_HTP.html
 6bd0a6ebcbce90d9604c64ffbeece885 *inst/tinytest/coefDat
 c30f76b0e5d906086c720b444a3d35a1 *inst/tinytest/corr1Comp
 8032479ded4cdf339ceba486049b6a69 *inst/tinytest/corr2Comp
@@ -97,7 +97,7 @@ bc6890aff7f287adf2d69d6555f2294f *inst/tinytest/test_getCorrected.R
 6e11977c506945386d4a55a4adf23872 *inst/tinytest/test_plot.psHDM.R
 f69152b3a84c573332666a681cd37f6e *inst/tinytest/test_predict.psHDM.R
 77c9d1df48306282ca1d8cb164a77971 *inst/tinytest/test_summaries.R
-3e4228a894583848071fa6f6306530ec *inst/tinytest/test_utils.R
+4b5f9c55536e627a9769e6bf0ef868b4 *inst/tinytest/test_utils.R
 369b732303fa5af7b205b0da9d683998 *inst/tinytest/var1Comp
 337cddcec31715cbf08e690978184291 *inst/tinytest/var2Comp
 353f23eeb96abec5b9f30f79a6eafd45 *inst/tinytest/var3Comp
