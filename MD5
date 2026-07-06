@@ -1,6 +1,6 @@
-4721d705f02f23d2f7f08e7e6933329d *DESCRIPTION
+58676a67acb26bfd97c324d36e3e61d7 *DESCRIPTION
 8b74f7d08d8c3dfdfb00309fc5914336 *NAMESPACE
-f270427220f69fe17c7b8dde3268a49b *NEWS.md
+1f4503c2e0edd1d896d6965a64e57968 *NEWS.md
 36f1858cbcdd6ee73b32ade9dc256184 *R/correctSpatial.R
 30ef0ef2846d31be9a2ed963c8d28028 *R/createFitMod.R
 4b6e697849ce99f5cdd4f36a4093a024 *R/createTimePoints.R
@@ -35,7 +35,7 @@ e5a78754f92779edd1c41825e76be480 *R/utils.R
 555f38b3ff315b24e69990faee989420 *data/spatPredArch.rda
 dfe20df95f32828b326209d1d695c360 *inst/doc/Overview_HTP.R
 e81e7eb81abd9b04e3072d76d1e87c7f *inst/doc/Overview_HTP.Rmd
-dd126520cd47c16b8d743e860b405aba *inst/doc/Overview_HTP.html
+0e73ae35957b1a429e58ecba859eb0d6 *inst/doc/Overview_HTP.html
 6bd0a6ebcbce90d9604c64ffbeece885 *inst/tinytest/coefDat
 c30f76b0e5d906086c720b444a3d35a1 *inst/tinytest/corr1Comp
 8032479ded4cdf339ceba486049b6a69 *inst/tinytest/corr2Comp
@@ -82,7 +82,7 @@ bab9a5be08eebb81c631a1764ecfea69 *inst/tinytest/serieOut
 b7fe0c8bb28f522739f46e2b28229d4b *inst/tinytest/testDat.csv
 ccce3a2e8218625965c3b701d40733e2 *inst/tinytest/test_TP.R
 08b223782eb6362e54c6b1a771b684cb *inst/tinytest/test_TPPlots.R
-0fa1a1be38fb23373e0bfd25dfbda92b *inst/tinytest/test_detectSerieOut.R
+a5621ed99ea4b8614bcd551cb2ad7353 *inst/tinytest/test_detectSerieOut.R
 bc0d9c743bd8e164e0e5748f2921b678 *inst/tinytest/test_detectSingleOut.R
 4463758ca439e64cd81a7e904e03487c *inst/tinytest/test_estimateSplineParameters.R
 1cac562f9cf91114728f62e8ab7080a5 *inst/tinytest/test_fitModPlots.R
